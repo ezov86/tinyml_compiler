@@ -1,0 +1,3 @@
+module test
+
+let a = new 2 + 3
