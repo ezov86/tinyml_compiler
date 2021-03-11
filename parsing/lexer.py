@@ -12,18 +12,17 @@ keywords = ('IF', 'TYPE', 'ELSE', 'THEN', 'IMPORT', 'FUN', 'LET', 'OPEN', 'MATCH
 lc_keywords = {x.lower(): x for x in keywords}
 
 # Остальные токены.
-tokens = keywords + ('PUT', 'ARROW', 'LPAR', 'RPAR', 'LAMBDA', 'EQ', 'NEQ', 'BEQ', 'LEQ', 'COMMA', 'FLOAT_PLUS',
-                     'FLOAT_MINUS', 'FLOAT_MUL', 'FLOAT_DIV', 'PLUS', 'MINUS', 'MUL', 'DIV', 'MOD', 'GETVAL',
-                     'CONS', 'XOR', 'CONCAT', 'OR', 'AND', 'NOT', 'BOR', 'BAND', 'BNOT', 'POLYMORPH_TYPE', 'ID', 'NUM',
-                     'STR', 'CASE', 'SEMICOLON', 'COLON', 'RSHIFT', 'LSHIFT', 'LANGLE', 'RANGLE', 'LBRACK', 'RBRACK',
-                     'LBRACE', 'RBRACE')
+tokens = keywords + (
+    'PUT', 'ARROW', 'LPAR', 'RPAR', 'EQ', 'NEQ', 'BEQ', 'LEQ', 'COMMA', 'FLOAT_PLUS', 'FLOAT_MINUS', 'FLOAT_MUL',
+    'FLOAT_DIV', 'PLUS', 'MINUS', 'MUL', 'DIV', 'MOD', 'GETVAL', 'CONS', 'XOR', 'CONCAT', 'OR', 'AND', 'NOT', 'BOR',
+    'BAND', 'BNOT', 'POLYMORPH_TYPE', 'ID', 'NUM', 'STR', 'SEMICOLON', 'COLON', 'RSHIFT', 'LSHIFT', 'LANGLE', 'RANGLE',
+    'LBRACK', 'RBRACK', 'LBRACE', 'RBRACE')
 
 # Регулярные выражения для остальных токенов.
 t_PUT = r'\:\='
 t_ARROW = r'\-\>'
 t_LPAR = r'\('
 t_RPAR = r'\)'
-t_LAMBDA = r'\=\>'
 t_EQ = r'\='
 t_NEQ = r'\!\='
 t_BEQ = r'\>\='
@@ -48,7 +47,6 @@ t_XOR = r'\^\^'
 t_BOR = r'\~\|'
 t_BAND = r'\~\&'
 t_BNOT = r'\~'
-t_CASE = r'\|'
 t_SEMICOLON = r'\;'
 t_COLON = r'\:'
 t_RSHIFT = r'\>\>'

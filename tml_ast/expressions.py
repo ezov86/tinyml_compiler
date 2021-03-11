@@ -97,8 +97,9 @@ class Match(Expression):
 
 
 class LambdaFun(Expression):
-    def __init__(self, position: Position, body: Expression):
+    def __init__(self, position: Position, args: List[str], body: Expression):
         super().__init__(position)
+        self.args = args
         self.body = body
 
     def accept(self, visitor: Visitor) -> Any:

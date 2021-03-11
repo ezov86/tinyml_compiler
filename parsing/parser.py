@@ -1,8 +1,7 @@
 from ply import yacc
 
-from position import Position
-from tml_ast.definitions import Let, TypeDef, TypeConstructor
-from tml_ast.expressions import Const, Var, If, Apply, Match, MatchBranch, LambdaFun, Group, BinOperator, UnaryOperator
+from tml_ast.definitions import *
+from tml_ast.expressions import *
 from tml_ast.import_modules import Import
 from tml_ast.root import Root
 from tml_ast.types import SimpleType, ParameterizedType, FunType, PolymorphType
@@ -57,7 +56,7 @@ def pass_or_empty(p):
 
 
 def p_root(p):
-    """ root : MODULE ID import_or_none open_or_none defs """
+    """ root : MODULE ID import_or_none open_or_none defs_or_none """
     p[0] = Root(p[2], p[3], p[4], p[5])
 
 
@@ -70,6 +69,12 @@ def p_import_or_none(p):
 def p_open_or_none(p):
     """ open_or_none    : _empty
                         | open """
+    _pass(p)
+
+
+def p_defs_or_none(p):
+    """ defs_or_none    : defs
+                        | _empty_list """
     _pass(p)
 
 
@@ -243,7 +248,9 @@ def p_expr(p):
                 | match
                 | fun
                 | bin_op
-                | un_op """
+                | un_op
+                | list
+                | get_el """
     _pass(p)
 
 
@@ -281,8 +288,28 @@ def p_un_op(p):
                 | MINUS expr %prec UMINUS
                 | BNOT expr
                 | NEW expr
-                | GETVAL expr """
+                | GETVAL expr"""
     p[0] = UnaryOperator(Position.from_parser_ctx(p), p[1], p[2])
+
+
+def p_list(p):
+    """ list : LBRACK expr_comma_list_or_none RBRACK """
+    pos = Position.from_parser_ctx(p)
+    p[0] = ListCreate(pos, Group(pos, p[2]))
+
+
+def p_get_el(p):
+    """ get_el : list_expr LBRACK expr RBRACK """
+    p[0] = GetElementFromList(Position.from_parser_ctx(p), p[1], p[3])
+
+
+def p_list_expr(p):
+    """ list_expr   : group
+                    | apply
+                    | get_el
+                    | var
+                    | list """
+    _pass(p)
 
 
 def p_group(p):
@@ -360,7 +387,7 @@ def p_expr_comma_list(p):
 def p_fun(p):
     """ fun : FUN LPAR args_list_or_none RPAR ARROW LBRACE fun_body RBRACE """
     pos = Position.from_parser_ctx(p)
-    p[0] = LambdaFun(pos, Group(pos, p[7]))
+    p[0] = LambdaFun(pos, p[3], Group(pos, p[7]))
 
 
 def p_args_list_or_none(p):
