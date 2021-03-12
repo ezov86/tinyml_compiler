@@ -1,4 +1,4 @@
-from tml_ast.visitor import Visitor
+from patterns.visitor import Visitor
 
 
 class SemanticVisitor(Visitor):

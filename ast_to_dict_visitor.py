@@ -1,6 +1,6 @@
 from tml_ast.expressions import Group
 from tml_ast.node import Node
-from visitor import Visitor
+from patterns.visitor import Visitor
 
 
 class AstToDictVisitor(Visitor):
