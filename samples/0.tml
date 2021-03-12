@@ -1,1 +1,8 @@
 module test
+
+let iter = fun(l, f) -> {
+    match l {
+        [] -> (),
+        h::t -> { f(h); iter(l, f) }
+    }
+}

@@ -1,12 +1,19 @@
+import json
+
+from ast_to_dict_visitor import AstToDictVisitor
 from base_stage import *
 import argparse
 from parsing.parser import parser
+from tml_ast.node import to_json as ast_to_json
 
 
 class ArgumentParsingStage(BaseStage):
     def handle(self, result: StageResult) -> StageResult:
         arg_parser = argparse.ArgumentParser()
         arg_parser.add_argument('source', help='Путь к файлу с исходным кодом.')
+        arg_parser.add_argument('-p', '--stop-after-parse',
+                                help='Остановиться после синтаксического анализа и вывести АСД в виде JSON.',
+                                action='store_true')
 
         args = arg_parser.parse_args()
         return super().handle(StageResult(args=args))
@@ -23,6 +30,10 @@ class SourceCodeReadingStage(BaseStage):
 class ParsingStage(BaseStage):
     def handle(self, result: StageResult) -> StageResult:
         ast = parser.parse(result.data, tracking=True)
+
+        if result.args.stop_after_parse:
+            print(json.dumps(AstToDictVisitor().visit(ast)))
+
         return super().handle(StageResult(args=result.args, data=ast))
 
 

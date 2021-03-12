@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Any
 
 from .node import Node
 from .import_modules import Import

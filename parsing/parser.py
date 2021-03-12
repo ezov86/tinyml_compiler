@@ -345,7 +345,8 @@ def p_match_branches(p):
 
 def p_match_branch(p):
     """ match_branch : expr ARROW match_branch_body """
-    p[0] = MatchBranch(Position.from_parser_ctx(p), p[1], Group(p[3]))
+    pos = Position.from_parser_ctx(p)
+    p[0] = MatchBranch(pos, p[1], Group(pos, [p[3]]))
 
 
 def p_match_branch_body(p):

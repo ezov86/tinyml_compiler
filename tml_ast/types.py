@@ -2,7 +2,6 @@ from typing import List, Any
 
 from .node import Node
 from position import Position
-from .visitor import Visitor
 
 
 class Type(Node):
@@ -12,8 +11,7 @@ class Type(Node):
 
 
 class SimpleType(Type):
-    def accept(self, visitor: Visitor) -> Any:
-        return visitor.visit_simple_type(self)
+    pass
 
 
 class ParameterizedType(Type):
@@ -21,13 +19,9 @@ class ParameterizedType(Type):
         super().__init__(position, name)
         self.types = types
 
-    def accept(self, visitor: Visitor) -> Any:
-        return visitor.visit_parameterized_type(self)
-
 
 class PolymorphType(Type):
-    def accept(self, visitor: Visitor) -> Any:
-        return visitor.visit_polymorph_type(self)
+    pass
 
 
 class FunType(Type):
