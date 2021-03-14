@@ -1,10 +1,7 @@
 from ply import yacc
 
 from errors import CompilationException, Error
-from tml_ast.definitions import *
-from tml_ast.expressions import *
-from tml_ast.root import *
-from tml_ast.types import *
+from tml_ast import *
 
 # Без этого импорта не будет работать ply.yacc
 # noinspection PyUnresolvedReferences

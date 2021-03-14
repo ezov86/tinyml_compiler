@@ -1,12 +1,11 @@
-from tml_ast.expressions import Group
-from tml_ast.node import Node
+from tml_ast import *
 from patterns.visitor import Visitor
 
 
 class AstToDictVisitor(Visitor):
-    def visit_node(self, node: Node) -> dict:
-        dic = node.__dict__
-        new_dic = {'node_type': node.__class__.__name__}
+    def visit_node(self, n: Node) -> dict:
+        dic = n.__dict__
+        new_dic = {'node_type': n.__class__.__name__}
 
         for child_name, child_value in dic.items():
             if child_name == 'position':
@@ -19,14 +18,14 @@ class AstToDictVisitor(Visitor):
 
         return new_dic
 
-    def visit_group(self, node: Group):
-        return self.visit_list(node)
+    def visit_group(self, n: Group):
+        return self.visit_list(n)
 
-    def visit_list(self, node: list) -> list:
-        return [self.visit(el) for el in node]
+    def visit_list(self, n: list) -> list:
+        return [self.visit(el) for el in n]
 
-    def visit_default(self, node, *args, **kwargs):
-        if isinstance(node, Node):
-            return self.visit_node(node)
+    def visit_default(self, n, *args, **kwargs):
+        if isinstance(n, Node):
+            return self.visit_node(n)
 
-        return node
+        return n
