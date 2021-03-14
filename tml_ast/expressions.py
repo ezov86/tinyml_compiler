@@ -27,7 +27,7 @@ class Var(Expression):
         self.name = name
 
 
-class Const(Expression):
+class Literal(Expression):
     def __init__(self, position: Position, _type, value: any):
         super().__init__(position)
         self.type = _type

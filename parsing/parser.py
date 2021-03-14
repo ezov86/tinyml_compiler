@@ -23,7 +23,7 @@ precedence = (
     ('left', 'NEW'),
     ('left', 'THEN', 'ELSE'),
     ('left', 'AND', 'OR', 'XOR'),
-    ('left', 'EQ', 'NEQ', 'BIGGER', 'LESS', 'BEQ', 'LEQ'),
+    ('left', 'EQ', 'NEQ', 'BIGGER', 'LESS', 'BEQ', 'LEQ', 'BEQ_FLOAT', 'LEQ_FLOAT'),
     ('left', 'CONS', 'CONCAT'),
     ('left', 'RSHIFT', 'LSHIFT'),
     ('left', 'BOR', 'BAND'),
@@ -268,9 +268,13 @@ def p_binop(p):
                 | expr EQ expr
                 | expr LANGLE expr %prec LESS
                 | expr RANGLE expr %prec BIGGER
+                | expr LESS_FLOAT expr %prec LESS
+                | expr BIGGER_FLOAT expr %prec BIGGER
                 | expr NEQ expr
                 | expr BEQ expr
                 | expr LEQ expr
+                | expr BEQ_FLOAT expr
+                | expr LEQ_FLOAT expr
                 | expr FLOAT_PLUS expr
                 | expr FLOAT_MINUS expr
                 | expr FLOAT_MUL expr
@@ -295,6 +299,7 @@ def p_binop(p):
 def p_un_op(p):
     """ un_op   : NOT expr
                 | MINUS expr %prec UMINUS
+                | FLOAT_MINUS expr %prec UMINUS
                 | BNOT expr
                 | NEW expr
                 | GETVAL expr"""
@@ -436,7 +441,8 @@ def p__empty_list(p):
 
 def p_const(p):
     """ const   : str_const
-                | num_const
+                | int_const
+                | float_const
                 | unit """
     _pass(p)
 
@@ -444,19 +450,25 @@ def p_const(p):
 def p_str_const(p):
     """ str_const : str """
     pos = Position.from_parser_ctx(p)
-    p[0] = Const(pos, SimpleType(pos, 'unit'), p[1])
+    p[0] = Literal(pos, SimpleType(pos, 'unit'), p[1])
 
 
 def p_num_const(p):
-    """ num_const : NUM """
+    """ int_const : INT """
     pos = Position.from_parser_ctx(p)
-    p[0] = Const(pos, SimpleType(pos, 'num'), p[1])
+    p[0] = Literal(pos, SimpleType(pos, 'int'), p[1])
+
+
+def p_float_const(p):
+    """ float_const : FLOAT """
+    pos = Position.from_parser_ctx(p)
+    p[0] = Literal(pos, SimpleType(pos, 'float'), p[1])
 
 
 def p_unit(p):
     """ unit : LPAR RPAR """
     pos = Position.from_parser_ctx(p)
-    p[0] = Const(pos, SimpleType(pos, 'unit'), None)
+    p[0] = Literal(pos, SimpleType(pos, 'unit'), None)
 
 
 def p_str(p):

@@ -24,8 +24,8 @@ lc_keywords = {x.lower(): x for x in keywords}
 tokens = keywords + (
     'PUT', 'ARROW', 'LPAR', 'RPAR', 'EQ', 'NEQ', 'BEQ', 'LEQ', 'COMMA', 'FLOAT_PLUS', 'FLOAT_MINUS', 'FLOAT_MUL',
     'FLOAT_DIV', 'PLUS', 'MINUS', 'MUL', 'DIV', 'MOD', 'GETVAL', 'CONS', 'XOR', 'CONCAT', 'OR', 'AND', 'NOT', 'BOR',
-    'BAND', 'BNOT', 'POLYMORPH_TYPE', 'ID', 'NUM', 'STR', 'SEMICOLON', 'COLON', 'RSHIFT', 'LSHIFT', 'LANGLE', 'RANGLE',
-    'LBRACK', 'RBRACK', 'LBRACE', 'RBRACE')
+    'BAND', 'BNOT', 'POLYMORPH_TYPE', 'ID', 'INT', 'STR', 'SEMICOLON', 'COLON', 'RSHIFT', 'LSHIFT', 'LANGLE', 'RANGLE',
+    'LBRACK', 'RBRACK', 'LBRACE', 'RBRACE', 'FLOAT', 'BIGGER_FLOAT', 'LESS_FLOAT', 'BEQ_FLOAT', 'LEQ_FLOAT')
 
 # Регулярные выражения для остальных токенов.
 t_PUT = r'\:\='
@@ -66,8 +66,13 @@ t_LBRACK = r'\['
 t_RBRACK = r'\]'
 t_LBRACE = r'\{'
 t_RBRACE = r'\}'
+t_BIGGER_FLOAT = r'\>\.'
+t_LESS_FLOAT = r'\<\.'
+t_BEQ_FLOAT = r'\>\=\.'
+t_LEQ_FLOAT = r'\<\=\.'
 
-t_NUM = r'([0-9]+([.][0-9]*)?|[.][0-9]+)'
+t_INT = r'[0-9]+'
+t_FLOAT = r'([0-9]*\.[0-9]+)|([0-9]+\.[0-9]*)'
 t_STR = r'\"(?:[^\"\\]|\\.)*\"'
 t_POLYMORPH_TYPE = r'[\`][a-z]'
 
