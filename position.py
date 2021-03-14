@@ -8,4 +8,12 @@ class Position:
 
     @staticmethod
     def from_parser_ctx(p):
-        return Position(p.slice[1].lineno)
+        return Position.from_parser_token(p.slice[1])
+
+    @staticmethod
+    def from_parser_token(p):
+        return Position(p.lineno)
+
+    @staticmethod
+    def from_lex_token(t):
+        return Position(t.lineno)

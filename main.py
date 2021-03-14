@@ -12,5 +12,5 @@ first_stage \
     .set_next(OptimizationStage()) \
     .set_next(CodeGenerationStage())
 
-final_result = first_stage.handle(StageResult(data=sys.argv))
+final_result = first_stage.handle(sys.argv)
 exit(0)

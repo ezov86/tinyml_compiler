@@ -1,6 +1,15 @@
 import ply.lex as lex
 import sys
 
+from errors import CompilationException, Error
+from position import Position
+
+
+class LexException(CompilationException):
+    def __init__(self, t):
+        super().__init__(Error(f"ошибка в лексеме '{t.value}'", Position.from_lex_token(t)))
+
+
 # Не знаю что это, но в примерах работы с PLY всегда есть эта строка.
 # TODO: попробовать удалить её.
 sys.path.insert(0, "../..")
@@ -89,9 +98,8 @@ t_ignore = '\t \r'
 
 
 def t_error(t):
-    """
-    Обработчик лексических ошибок. Для продолжения лексического разбора пропускает токен с ошибкой.
-    """
+    """ Обработчик лексических ошибок. Для продолжения лексического разбора пропускает токен с ошибкой. """
+    LexException(t).handle()
     t.lexer.skip(1)
 
 

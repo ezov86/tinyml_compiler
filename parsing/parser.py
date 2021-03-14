@@ -1,12 +1,24 @@
 from ply import yacc
 
+from errors import CompilationException, Error
 from tml_ast.definitions import *
 from tml_ast.expressions import *
-from tml_ast.import_modules import Import
-from tml_ast.root import Root
-from tml_ast.types import SimpleType, ParameterizedType, FunType, PolymorphType
+from tml_ast.root import *
+from tml_ast.types import *
 
+# Без этого импорта не будет работать ply.yacc
+# noinspection PyUnresolvedReferences
 from .lexer import tokens
+
+
+class InvalidSyntaxException(CompilationException):
+    def __init__(self, p):
+        super().__init__(Error(f"синтаксическая ошибка в '{p.value}'", Position.from_parser_token(p)))
+
+
+class UnexpectedEofException(CompilationException):
+    def __init__(self):
+        super().__init__(Error('неожиданный конец файла'))
 
 
 precedence = (
@@ -456,7 +468,10 @@ def p_str(p):
 
 
 def p_error(p):
-    print('синтаксическая ошибка')
+    if p is None:
+        UnexpectedEofException().handle()
+    else:
+        InvalidSyntaxException(p).handle()
 
 
 parser = yacc.yacc()
