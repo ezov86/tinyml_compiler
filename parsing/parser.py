@@ -453,16 +453,16 @@ def p_str_const(p):
     p[0] = Literal(pos, SimpleType(pos, 'unit'), p[1])
 
 
-def p_num_const(p):
+def p_int_const(p):
     """ int_const : INT """
     pos = Position.from_parser_ctx(p)
-    p[0] = Literal(pos, SimpleType(pos, 'int'), p[1])
+    p[0] = Literal(pos, SimpleType(pos, 'int'), int(p[1]))
 
 
 def p_float_const(p):
     """ float_const : FLOAT """
     pos = Position.from_parser_ctx(p)
-    p[0] = Literal(pos, SimpleType(pos, 'float'), p[1])
+    p[0] = Literal(pos, SimpleType(pos, 'float'), float(p[1]))
 
 
 def p_unit(p):
