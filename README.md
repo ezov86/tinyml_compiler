@@ -1,4 +1,4 @@
-#tinyml_compiler
+# tinyml_compiler
 
 Компилятор для простого функционального ЯП.
 
