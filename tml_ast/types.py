@@ -1,4 +1,4 @@
-from typing import List, Any
+from typing import List
 
 from .node import Node
 from position import Position
@@ -15,9 +15,9 @@ class SimpleType(Type):
 
 
 class ParameterizedType(Type):
-    def __init__(self, position: Position, name: str, types: List[Type]):
+    def __init__(self, position: Position, name: str, params: List[Type]):
         super().__init__(position, name)
-        self.types = types
+        self.params = params
 
 
 class PolymorphType(Type):
