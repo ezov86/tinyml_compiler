@@ -23,7 +23,7 @@ lc_keywords = {x.lower(): x for x in keywords}
 # Остальные токены.
 tokens = keywords + (
     'PUT', 'ARROW', 'LPAR', 'RPAR', 'EQ', 'NEQ', 'BEQ', 'LEQ', 'COMMA', 'FLOAT_PLUS', 'FLOAT_MINUS', 'FLOAT_MUL',
-    'FLOAT_DIV', 'PLUS', 'MINUS', 'MUL', 'DIV', 'MOD', 'GETVAL', 'CONS', 'XOR', 'CONCAT', 'OR', 'AND', 'NOT', 'BOR',
+    'FLOAT_DIV', 'PLUS', 'MINUS', 'MUL', 'DIV', 'MOD', 'GETVAL', 'CONS', 'CONCAT', 'OR', 'AND', 'NOT', 'BOR',
     'BAND', 'BNOT', 'POLYMORPH_TYPE', 'ID', 'INT', 'STR', 'SEMICOLON', 'COLON', 'RSHIFT', 'LSHIFT', 'LANGLE', 'RANGLE',
     'LBRACK', 'RBRACK', 'LBRACE', 'RBRACE', 'FLOAT', 'BIGGER_FLOAT', 'LESS_FLOAT', 'BEQ_FLOAT', 'LEQ_FLOAT')
 
@@ -52,7 +52,6 @@ t_CONCAT = r'\^'
 t_OR = r'\|\|'
 t_AND = r'\&'
 t_NOT = r'\!'
-t_XOR = r'\^\^'
 t_BOR = r'\~\|'
 t_BAND = r'\~\&'
 t_BNOT = r'\~'

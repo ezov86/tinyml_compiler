@@ -22,8 +22,9 @@ precedence = (
     ('left', 'PUT'),
     ('left', 'NEW'),
     ('left', 'THEN', 'ELSE'),
-    ('left', 'AND', 'OR', 'XOR'),
-    ('left', 'EQ', 'NEQ', 'BIGGER', 'LESS', 'BEQ', 'LEQ', 'BEQ_FLOAT', 'LEQ_FLOAT'),
+    ('left', 'OR'),
+    ('left', 'AND'),
+    ('left', 'EQ', 'NEQ', 'BIGGER', 'LESS', 'BEQ', 'LEQ', 'BEQ_FLOAT', 'LEQ_FLOAT', 'FLOAT_BIGGER', 'FLOAT_LESS'),
     ('left', 'CONS', 'CONCAT'),
     ('left', 'RSHIFT', 'LSHIFT'),
     ('left', 'BOR', 'BAND'),
@@ -288,12 +289,11 @@ def p_binop(p):
                 | expr CONCAT expr
                 | expr OR expr
                 | expr AND expr
-                | expr XOR expr
                 | expr BOR expr
                 | expr BAND expr
                 | expr LSHIFT expr
                 | expr RSHIFT expr """
-    p[0] = BinOperator(Position.from_parser_ctx(p), p[2], p[1], p[3])
+    p[0] = BinaryOperator(Position.from_parser_ctx(p), p[2], p[1], p[3])
 
 
 def p_un_op(p):
