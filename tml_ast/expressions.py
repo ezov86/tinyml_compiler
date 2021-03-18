@@ -34,7 +34,7 @@ class Literal(Expression):
         self.value = value
 
 
-class BinOperator(Expression):
+class BinaryOperator(Expression):
     def __init__(self, position: Position, operation: str, left: Expression, right: Expression):
         super().__init__(position)
         self.operation = operation

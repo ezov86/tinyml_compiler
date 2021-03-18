@@ -5,6 +5,8 @@ from args import Args
 from ast_to_dict_visitor import AstToDictVisitor
 from base_stage import *
 from parsing.parser import parser
+from semantic.ast_visitor import SemanticVisitor
+from semantic.builtins import builtin_types
 
 
 class ArgumentParsingStage(BaseStage):
@@ -41,7 +43,7 @@ class ParsingStage(BaseStage):
 
 class AstVisitingStage(BaseStage):
     def handle(self, result):
-        return super().handle(result)
+        return super().handle(SemanticVisitor().visit_root(result, [builtin_types]))
 
 
 class TypeInferringStage(BaseStage):
