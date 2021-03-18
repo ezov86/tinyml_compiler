@@ -1,7 +1,26 @@
-Грамматика TinyML:
+# Грамматика TinyML
 
+В этом файле находится описание грамматики TinyML для LALR(1) парсера.
+
+Синтаксис описания правил:
+* () — группировка.
+* ? — 0 или 1 повторение.
+* \* — 0 и более повторений.
+* \+ — одно и более повторение.
+* regex(x) — регулярное выражение PCRE x. 
+* x — нетерминал с именем x.
+* X — терминал с именем x.
+* a | b — a или b.
+* 'x' — токен x.
+
+
+### Верхний уровень (модуль) 
 ```
 module = 'module' ID import? open_or_none? defs_or_none?
+
+open = 'open' modules_list
+import = 'import' modules_list
+modules_list = str (',' modules_list)*
                     
 defs = def+
        
@@ -29,9 +48,10 @@ types_product_with_eq = '=' types_product
 
 types_product = type ('*' types_product)*
 
-open = 'open' modules_list
-import = 'import' modules_list
-modules_list = str (',' modules_list)*
+```
+
+### Типы
+```
 
 type = atomic_type
 type = fun_type
@@ -58,7 +78,10 @@ right_arg_type = fun_type_args
 polymorph_type = POLYMORPH_TYPE
 
 type_in_par = '(' type ')'
+```
 
+### Выражения
+```
 expr = const
      | var
      | if
@@ -163,6 +186,31 @@ float_const = FLOAT
 unit = '(' ')'
 ```
 
-Таблица приоритетов:
+### Терминалы (PCRE regex)
+```
+INT = [0-9]+
+FLOAT = ([0-9]*\.[0-9]+)|([0-9]+\.[0-9]*)
+STR = \"(?:[^\"\\]|\\.)*\"
+POLYMORPH_TYPE = [\`][a-z]
+ID = [A-Za-z_]+[\w\._]*
+```
 
-TODO: доделать таблицу приоритетов и описать терминалы.
+### Игнорируемые символы (PCRE regex)
+```
+(\#[^\n\r]*)|[\n\r \t]
+```
+
+## Таблица приоритетов:
+| Операция | Приоритет (большее число — больший приоритет) |
+| -------- | --------- |
+| := | 0 |
+| new | 1 |
+| then else | 2 |
+| &#124; | 3 |
+| & | 4 |
+| = != > < <= >= >. <. >=. <=. | 5 |
+| ^ :: | 6 |
+| >> << | 7 |
+| + - +. -. | 8 |
+| * / % *. /. | 9 |
+| унарные операторы: - ! $ ~ | 10 |
