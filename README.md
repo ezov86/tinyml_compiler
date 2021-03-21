@@ -17,6 +17,10 @@
 
 [Python 3.8+](https://www.python.org/downloads/release/python-380) (должно работать и на версии 3.6)
 
+## Описание языка
+
+[Грамматика языка](https://github.com/mahintim2/tinyml_compiler/blob/master/docs/grammar.md)
+
 ## Запуск
 
 В source.tml исходный код:
