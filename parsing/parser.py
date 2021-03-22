@@ -118,7 +118,7 @@ def p_type_hint(p):
 
 def p_type_def(p):
     """ type_def : TYPE ID polymorph_type_params_or_none EQ LBRACE type_constructors RBRACE"""
-    p[0] = TypeDef(Position.from_parser_ctx(p), p[2], p[3], p[6])
+    p[0] = Typedef(Position.from_parser_ctx(p), p[2], p[3], p[6])
 
 
 def p_polymorph_type_params_or_none(p):

@@ -7,7 +7,6 @@ from errors import Errors
 from parsing.parser import parser
 from semantic.ast_visitor import SemanticVisitor
 from semantic.typing.inferer import GlobalTypeInferer
-from semantic.typing.polym_type_name_setter import PolymorphTypeNameSetter
 from tml_ast import Root
 
 

@@ -7,15 +7,15 @@ class Node:
     def __init__(self):
         self.position = None
 
+    def at(self, position: Position):
+        self.position = position
+        return self
+
 
 class TypedNode(Node):
     def __init__(self):
         super().__init__()
         self._type_wrapper = TypeWrapper(PolymorphType())
-
-    def at(self, position: Position):
-        self.position = position
-        return self
 
     def with_type(self, t: Type):
         self._type_wrapper.type = t
@@ -25,7 +25,6 @@ class TypedNode(Node):
         return self._type_wrapper
 
     def get_type(self):
-        a = type(self.type_wrapper)
         return self.type_wrapper.type
 
     def set_type(self, t):

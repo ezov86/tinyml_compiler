@@ -8,8 +8,8 @@ from .defs import FakeArg
 
 
 class RedefinitionException(CompilationException):
-    def __init__(self, name):
-        super().__init__(Error(f"переопределение '{name}'"))
+    def __init__(self, name, position: Position):
+        super().__init__(Error(f"переопределение '{name}'", position))
 
 
 class NotFoundException(CompilationException):
@@ -85,9 +85,9 @@ class Definitions:
         self.search_strategy = search_strategy
         self.search_strategy.is_typedefs = is_typedefs
 
-    def add(self, definition):
+    def add(self, definition, position: Position):
         if self.find(definition.name, True):
-            raise RedefinitionException(definition.name)
+            raise RedefinitionException(definition.name, position)
 
         self.defs[definition.name] = definition
 

@@ -25,7 +25,7 @@ class TypeConstructor(Definition):
         self.types = types
 
 
-class TypeDef(Definition):
+class Typedef(Definition):
     def __init__(self, position: Position, name: str, params: List[PolymorphType], constructors: List[TypeConstructor]):
         super().__init__(position, name)
         self.params = params

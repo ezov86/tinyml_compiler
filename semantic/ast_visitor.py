@@ -4,9 +4,10 @@ import tml_ast as ast
 from errors import CompilationException
 from patterns.visitor import Visitor
 from .builtins import t_if, builtin_types, un_ops_types, bin_ops_types
-from .defs import Let, FakeArg
+from .defs import Let, FakeArg, Typedef, TypeConstructor
 from .expressions import *
-from .module import GlobalModule, Scope, NotFoundException
+from .module import GlobalModule, Scope, NotFoundException, RedefinitionException
+from .typing.ast_type_visitor import AstTypeVisitor
 from .typing.inferer import GlobalTypeInferer, Constraint
 from .typing.types import PolymorphType, SimpleType, ParameterizedType, fun_type
 
@@ -16,16 +17,19 @@ class SemanticVisitor(Visitor):
         GlobalModule(n.module_name).opened_modules.append(builtin_types)
 
         for definition in n.definitions:
-            self.visit(definition, GlobalModule().top_scope)
+            try:
+                self.visit(definition, GlobalModule().top_scope)
+            except CompilationException as e:
+                e.handle()
 
         return GlobalModule()
 
     def visit_let(self, n: ast.Let, scope: Scope):
         e = Let(n.name).at(n.position)
-        scope.lets.add(e)
+        scope.lets.add(e, e.position)
 
         if n.type_hint is not None:
-            e.with_type(self.visit(n.type_hint, scope))
+            e.with_type(AstTypeVisitor(scope).visit(n.type_hint))
 
         e.lock_rec = True
         e.value = self.visit(n.expression, scope)
@@ -39,32 +43,12 @@ class SemanticVisitor(Visitor):
         ))
 
     def visit_literal(self, n: ast.Literal, scope: Scope) -> Literal:
-        return Literal(n.value).with_type(self.visit(n.type, scope)).at(n.position)
+        return Literal(n.value).with_type(AstTypeVisitor(scope).visit(n.type)).at(n.position)
 
     def visit_var(self, n: ast.Var, scope: Scope) -> Var:
         let = scope.lets.find_or_fail(n.name, n.position)
 
         return Var(let).at(n.position)
-
-    def visit_polymorph_type(self, n: ast.PolymorphType, scope: Scope, params={}):
-        if params:
-            if n.name in params:
-                return params[n.name]
-        else:
-            t = PolymorphType()
-            params[n.name] = t
-            return t
-
-    def visit_simple_type(self, n: ast.SimpleType, scope: Scope, params={}):
-        scope.typedefs.find_or_fail(n.name, n.position).check_params_or_fail([], n.position)
-
-        return SimpleType(n.name)
-
-    def visit_parameterized_type(self, n: ast.ParameterizedType, scope: Scope, params={}):
-        scope.typedefs.find_or_fail(n.name, n.position).check_params_or_fail(n.params, n.position)
-
-        type_params = [self.visit(t, scope, params) for t in n.params]
-        return ParameterizedType(n.name, type_params)
 
     def visit_apply(self, n: ast.Apply, scope: Scope):
         args = [self.visit(arg, scope) for arg in n.args]
@@ -173,3 +157,33 @@ class SemanticVisitor(Visitor):
     def visit_get_element_from_list(self, n: ast.GetElementFromList, scope: Scope):
         # TODO: тождество t(get_element_from_list) = t(l) -> t(e).
         return GetElementFromList(self.visit(n.list, scope), self.visit(n.index, scope)).at(n.position)
+
+    def visit_typedef(self, n: ast.Typedef, scope: Scope):
+        params = {}
+        for p in n.params:
+            if p.name in params:
+                raise RedefinitionException(p.name, n.position)
+
+            params[p.name] = PolymorphType()
+
+        typedef = Typedef(n.name, list(params.values())).at(n.position)
+        scope.typedefs.add(typedef, n.position)
+
+        for constructor in n.constructors:
+            typedef.constructors.append(self.visit(constructor, scope, typedef, params))
+
+        return typedef
+
+    def visit_type_constructor(self, n: ast.TypeConstructor, scope: Scope, typedef: Typedef, params: dict):
+        fields = []
+
+        types_visitor = AstTypeVisitor(scope, len(params) != 0, params, True)
+
+        if n.types is not None:
+            for field in n.types:
+                fields.append(types_visitor.visit(field))
+
+        type_constructor = TypeConstructor(n.name, fields, typedef).at(n.position)
+        scope.lets.add(type_constructor, n.position)
+
+        return type_constructor

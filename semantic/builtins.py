@@ -1,10 +1,10 @@
 from position import Position
-from .defs import TypeDef, spec_name, InvalidParamTypeUsageException, ForeignLet
+from .defs import Typedef, spec_name, InvalidParamTypeUsageException, ForeignLet
 from .module import Module
 from .typing.types import fun_type, t_int, t_float, t_bool, t_a, t_ref_a
 
 
-class FunTypeDef(TypeDef):
+class FunTypedef(Typedef):
     def __init__(self):
         super().__init__('fun', 0)
 
@@ -16,13 +16,13 @@ class FunTypeDef(TypeDef):
 builtin_types = Module(spec_name('builtins.types'))
 
 typedefs = {
-    'float': TypeDef('float', 0),
-    'int': TypeDef('int', 0),
-    'string': TypeDef('string', 0),
-    'bool': TypeDef('bool', 0),
-    'ref': TypeDef('ref', 1),
-    'unit':  TypeDef('unit', 0),
-    'fun': FunTypeDef()
+    'float': Typedef('float'),
+    'int': Typedef('int'),
+    'string': Typedef('string'),
+    'bool': Typedef('bool'),
+    'ref': Typedef('ref', [t_a]),
+    'unit':  Typedef('unit'),
+    'fun': FunTypedef()
 }
 
 builtin_types.top_scope.typedefs.defs = typedefs

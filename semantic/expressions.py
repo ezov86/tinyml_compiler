@@ -100,7 +100,7 @@ class LambdaFun(BaseExpression, Scope):
         return True
 
     def add_arg(self, arg: Arg):
-        self.lets.add(arg)
+        self.lets.add(arg, arg.position)
         self.args.append(arg)
 
     def get_type_wrapper(self):
