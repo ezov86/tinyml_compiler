@@ -1,10 +1,10 @@
-from typing import List
+from copy import copy
+from typing import List, Optional
 
 from errors import Error, CompilationException
 from patterns.singleton import Singleton
 from position import Position
 from .defs import FakeArg
-from .node import Node
 
 
 class RedefinitionException(CompilationException):
@@ -64,20 +64,40 @@ class DefSearchStrategyForCurrentModule(DefSearchStrategy):
             return defs.find(def_name)
 
 
+class DefSearchStrategyWithParent(DefSearchStrategy):
+    def __init__(self, parent_scope):
+        self.parent_scope = parent_scope
+        self.do_search_in_parent = True
+
+    def find(self, defs: dict, name: str):
+        definition = super().find(defs, name)
+
+        if definition is None and (self.parent_scope is not None) and self.do_search_in_parent:
+            defs = self.parent_scope.typedefs if self.is_typedefs else self.parent_scope.lets
+            definition = defs.find(name)
+
+        return definition
+
+
 class Definitions:
-    def __init__(self, search_strategy, is_typedefs=False):
+    def __init__(self, search_strategy=DefSearchStrategy(), is_typedefs=False):
         self.defs = {}
         self.search_strategy = search_strategy
         self.search_strategy.is_typedefs = is_typedefs
 
     def add(self, definition):
-        if self.find(definition.name):
+        if self.find(definition.name, True):
             raise RedefinitionException(definition.name)
 
         self.defs[definition.name] = definition
 
-    def find(self, name: str):
-        return self.search_strategy.find(self.defs, name)
+    def find(self, name: str, do_not_use_parent_search=False):
+        if isinstance(self.search_strategy, DefSearchStrategyWithParent) and do_not_use_parent_search:
+            search_strategy = DefSearchStrategy()
+        else:
+            search_strategy = self.search_strategy
+
+        return search_strategy.find(self.defs, name)
 
     def find_or_fail(self, name: str, position: Position):
         definition = self.find(name)
@@ -90,7 +110,7 @@ class Definitions:
 class Scope:
     def __init__(self, search_strategy=DefSearchStrategy()):
         self.lets = Definitions(search_strategy)
-        self.typedefs = Definitions(search_strategy, is_typedefs=True)
+        self.typedefs = Definitions(copy(search_strategy), is_typedefs=True)
 
 
 class Module:
@@ -99,15 +119,9 @@ class Module:
         self.top_scope = Scope()
 
 
-class GlobalModule(Module, Singleton):
-    # Здесь для инициализации не используется обычный конструктор из-за ограничений реализации паттерна синглтона.
-    # noinspection PyMissingConstructor
-    def __init__(self):
-        pass
-
-    # noinspection PyAttributeOutsideInit
-    def init(self, name: str):
-        self.name = name
+class GlobalModule(Module, metaclass=Singleton):
+    def __init__(self, name: Optional[str] = None):
+        super().__init__(name)
         self.top_scope = Scope(DefSearchStrategyForCurrentModule())
         self.included_modules: List[Module] = []
         self.opened_modules: List[Module] = []

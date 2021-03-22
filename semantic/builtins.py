@@ -1,6 +1,7 @@
 from position import Position
-from .defs import TypeDef, spec_name, InvalidParamTypeUsageException
+from .defs import TypeDef, spec_name, InvalidParamTypeUsageException, ForeignLet
 from .module import Module
+from .typing.types import fun_type, t_int, t_float, t_bool, t_a, t_ref_a
 
 
 class FunTypeDef(TypeDef):
@@ -17,6 +18,7 @@ builtin_types = Module(spec_name('builtins.types'))
 typedefs = {
     'float': TypeDef('float', 0),
     'int': TypeDef('int', 0),
+    'string': TypeDef('string', 0),
     'bool': TypeDef('bool', 0),
     'ref': TypeDef('ref', 1),
     'unit':  TypeDef('unit', 0),
@@ -24,3 +26,60 @@ typedefs = {
 }
 
 builtin_types.top_scope.typedefs.defs = typedefs
+builtin_types.top_scope.lets.defs = {
+    'True': ForeignLet('True').with_type(t_bool),
+    'False': ForeignLet('False').with_type(t_bool)
+}
+
+t_int_int_int = fun_type([t_int, t_int], t_int)
+t_float_float_float = fun_type([t_float, t_float], t_float)
+t_int_int_bool = fun_type([t_int, t_int], t_bool)
+t_float_float_bool = fun_type([t_float, t_float], t_bool)
+t_a_a_bool = fun_type([t_a, t_a], t_bool)
+t_bool_bool_bool = fun_type([t_bool, t_bool], t_bool)
+t_if = fun_type([t_bool, t_a, t_a], t_a)
+
+bin_ops_types = {
+    # int -> int -> int
+    '+': t_int_int_int,
+    '-': t_int_int_int,
+    '/': t_int_int_int,
+    '*': t_int_int_int,
+    '%': t_int_int_int,
+    '>>': t_int_int_int,
+    '<<': t_int_int_int,
+
+    # float -> float -> float
+    '+.': t_float_float_float,
+    '-.': t_float_float_float,
+    '/.': t_float_float_float,
+    '*.': t_float_float_float,
+
+    # int -> int -> bool
+    '>': t_int_int_bool,
+    '<': t_int_int_bool,
+    '>=': t_int_int_bool,
+    '<=': t_int_int_bool,
+
+    # float -> float -> bool
+    '>.': t_float_float_bool,
+    '<.': t_float_float_bool,
+    '>=.': t_float_float_bool,
+    '<=.': t_float_float_bool,
+
+    # `a -> `a -> bool
+    '=': t_a_a_bool,
+    '!=': t_a_a_bool,
+
+    # bool -> bool -> bool
+    '|': t_bool_bool_bool,
+    '&': t_bool_bool_bool,
+}
+
+un_ops_types = {
+    '-': fun_type([t_int], t_int),
+    '~': fun_type([t_int], t_int),
+    '!': fun_type([t_bool], t_bool),
+    '$': fun_type([t_ref_a], t_a),
+    'new': fun_type([t_a], t_ref_a)
+}

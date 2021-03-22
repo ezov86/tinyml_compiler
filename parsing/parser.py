@@ -24,7 +24,7 @@ precedence = (
     ('left', 'THEN', 'ELSE'),
     ('left', 'OR'),
     ('left', 'AND'),
-    ('left', 'EQ', 'NEQ', 'BIGGER', 'LESS', 'BEQ', 'LEQ', 'BEQ_FLOAT', 'LEQ_FLOAT', 'FLOAT_BIGGER', 'FLOAT_LESS'),
+    ('left', 'EQ', 'NEQ', 'BIGGER', 'LESS', 'BEQ', 'LEQ', 'BIGGER_FLOAT', 'LESS_FLOAT'),
     ('left', 'CONS', 'CONCAT'),
     ('left', 'RSHIFT', 'LSHIFT'),
     ('left', 'BOR', 'BAND'),
@@ -215,7 +215,7 @@ def p_types_list(p):
 def p_fun_type(p):
     """ fun_type    : fun_type_arg
                     | fun_type_args """
-    p[0] = FunType(Position.from_parser_ctx(p), p[1])
+    p[0] = ParameterizedType(Position.from_parser_ctx(p), 'fun', p[1])
 
 
 def p_fun_type_arg(p):
@@ -269,8 +269,8 @@ def p_binop(p):
                 | expr EQ expr
                 | expr LANGLE expr %prec LESS
                 | expr RANGLE expr %prec BIGGER
-                | expr LESS_FLOAT expr %prec LESS
-                | expr BIGGER_FLOAT expr %prec BIGGER
+                | expr LESS_FLOAT expr
+                | expr BIGGER_FLOAT expr
                 | expr NEQ expr
                 | expr BEQ expr
                 | expr LEQ expr
@@ -450,7 +450,7 @@ def p_const(p):
 def p_str_const(p):
     """ str_const : str """
     pos = Position.from_parser_ctx(p)
-    p[0] = Literal(pos, SimpleType(pos, 'unit'), p[1])
+    p[0] = Literal(pos, SimpleType(pos, 'string'), p[1])
 
 
 def p_int_const(p):

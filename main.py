@@ -6,6 +6,8 @@ from ast_to_dict_visitor import AstToDictVisitor
 from errors import Errors
 from parsing.parser import parser
 from semantic.ast_visitor import SemanticVisitor
+from semantic.typing.inferer import GlobalTypeInferer
+from semantic.typing.polym_type_name_setter import PolymorphTypeNameSetter
 from tml_ast import Root
 
 
@@ -30,7 +32,7 @@ def parse_args(_=None):
                             action='store_true')
 
     args = arg_parser.parse_args()
-    Args().initialize(args)
+    Args(args)
 
     return handle_next_stage(None, read_source_code)
 
@@ -52,12 +54,13 @@ def parse_source_code(text: str):
 
 
 def visit_ast(ast: Root):
-    SemanticVisitor().visit_root(ast)
-    return handle_next_stage(None, infer_types)
+    module = SemanticVisitor().visit_root(ast)
+    return handle_next_stage(module, infer_types)
 
 
-def infer_types(_):
-    return handle_next_stage(None, generate_code)
+def infer_types(module):
+    GlobalTypeInferer().infer()
+    return handle_next_stage(module, generate_code)
 
 
 def generate_code(_):

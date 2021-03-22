@@ -1,7 +1,10 @@
 from typing import List
 
+from .defs import Arg
+from .module import Scope, Definitions, DefSearchStrategyWithParent
 from .node import TypedNode
-from .typing.types import PolymorphType
+from .typing.inferer import TypeWrapper
+from .typing.types import PolymorphType, fun_type
 
 
 class BaseExpression(TypedNode):
@@ -10,22 +13,36 @@ class BaseExpression(TypedNode):
 
 class Group(BaseExpression, list):
     def __init__(self, body):
-        BaseExpression().__init__()
-        list(self).__init__(body)
+        BaseExpression.__init__(self)
+        list.__init__(self, body)
 
-    def get_type(self):
+    def is_const_fun(self) -> bool:
         if not self:
-            return PolymorphType()
+            return False
         else:
-            return self[-1].type
+            return self[-1].is_const_fun()
 
-    type = property(get_type)
+    def get_type_wrapper(self):
+        if not self:
+            return TypeWrapper(PolymorphType())
+        else:
+            return self[-1].type_wrapper
+
+    type_wrapper = property(get_type_wrapper)
 
 
 class Var(BaseExpression):
     def __init__(self, let):
         super().__init__()
         self.let = let
+
+    def is_const_fun(self) -> bool:
+        return self.let.is_const_fun()
+
+    def get_type_wrapper(self):
+        return self.let.type_wrapper
+
+    type_wrapper = property(get_type_wrapper)
 
 
 class Apply(BaseExpression):
@@ -72,11 +89,24 @@ class Match(BaseExpression):
         self.branches = branches
 
 
-class LambdaFun(BaseExpression):
-    def __init__(self, body: Group):
-        super().__init__()
+class LambdaFun(BaseExpression, Scope):
+    def __init__(self, parent_scope):
+        BaseExpression.__init__(self)
+        Scope.__init__(self, DefSearchStrategyWithParent(parent_scope))
         self.args = []
-        self.body = body
+        self.body = Group([])
+
+    def is_const_fun(self) -> bool:
+        return True
+
+    def add_arg(self, arg: Arg):
+        self.lets.add(arg)
+        self.args.append(arg)
+
+    def get_type_wrapper(self):
+        return TypeWrapper(fun_type([arg.type for arg in self.args], self.body.type))
+
+    type_wrapper = property(get_type_wrapper)
 
 
 class ListCreate(BaseExpression):

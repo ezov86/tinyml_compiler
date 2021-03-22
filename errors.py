@@ -15,7 +15,7 @@ class Error:
         return f'{Args().source}{pos}: {self.message}'
 
 
-class Errors(Singleton):
+class Errors(metaclass=Singleton):
     list: List[Error] = []
 
     def is_ok(self):

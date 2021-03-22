@@ -22,9 +22,3 @@ class ParameterizedType(Type):
 
 class PolymorphType(Type):
     pass
-
-
-class FunType(Type):
-    def __init__(self, position: Position, types: List[Type]):
-        super().__init__(position, "fun")
-        self.types = types

@@ -28,9 +28,21 @@ class BaseLet(TypedNode):
 
 
 class Let(BaseLet):
-    def __init__(self, name: str, value):
+    def __init__(self, name: str):
         super().__init__(name)
-        self.value = value
+        self.value = None
+        self.lock_rec = False
+
+    def is_const_fun(self) -> bool:
+        if self.lock_rec:
+            return True
+
+        return self.value.is_const_fun()
+
+
+class ForeignLet(BaseLet):
+    def is_const_fun(self) -> bool:
+        return True
 
 
 class Arg(BaseLet):
