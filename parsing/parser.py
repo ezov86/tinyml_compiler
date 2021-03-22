@@ -24,7 +24,7 @@ precedence = (
     ('left', 'THEN', 'ELSE'),
     ('left', 'OR'),
     ('left', 'AND'),
-    ('left', 'EQ', 'NEQ', 'BIGGER', 'LESS', 'BEQ', 'LEQ', 'BIGGER_FLOAT', 'LESS_FLOAT'),
+    ('left', 'EQ', 'NEQ', 'BIGGER', 'LESS', 'BEQ', 'LEQ', 'BIGGER_FLOAT', 'LESS_FLOAT', 'BEQ_FLOAT', 'LEQ_FLOAT'),
     ('left', 'CONS', 'CONCAT'),
     ('left', 'RSHIFT', 'LSHIFT'),
     ('left', 'BOR', 'BAND'),
