@@ -7,6 +7,7 @@ class Args(metaclass=Singleton):
     source = ''
     stop_after_parsing = False
     stop_after_type_inferring = False
+    skip_header_generation = False
 
     def __init__(self, args: Namespace = None):
         # Обновление полей текущего объекта полями из args.

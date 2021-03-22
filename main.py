@@ -1,9 +1,11 @@
 import argparse
 import json
+from pathlib import Path
 
 from args import Args
 from ast_to_dict_visitor import AstToDictVisitor
 from errors import Errors
+from header_gen import HeaderGenerator
 from parsing.parser import parser
 from semantic.ast_visitor import SemanticVisitor
 from semantic.typing.inferer import GlobalTypeInferer
@@ -28,6 +30,8 @@ def parse_args(_=None):
     arg_parser.add_argument('source', help='Путь к файлу с исходным кодом.')
     arg_parser.add_argument('-p', '--stop-after-parsing',
                             help='Остановиться после синтаксического анализа и вывести АСД в виде JSON.',
+                            action='store_true')
+    arg_parser.add_argument('-g', '--skip-header-generation', help='Пропустить генерацию заголовочного файла модуля.',
                             action='store_true')
 
     args = arg_parser.parse_args()
@@ -59,10 +63,19 @@ def visit_ast(ast: Root):
 
 def infer_types(module):
     GlobalTypeInferer().infer()
+    return handle_next_stage(module, generate_header)
+
+
+def generate_header(module):
+    if not Args().skip_header_generation:
+        text = json.dumps(HeaderGenerator().visit(module), separators=(',', ':'))
+        with Path(Args().source).with_suffix('').open('w') as file:
+            file.write(text)
+
     return handle_next_stage(module, generate_code)
 
 
-def generate_code(_):
+def generate_code(module):
     return handle_next_stage(None)
 
 

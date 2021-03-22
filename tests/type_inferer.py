@@ -11,6 +11,7 @@ from semantic.typing.types import fun_type, t_int, t_bool, t_string, t_float, t_
 class TestTypeInferer(unittest.TestCase):
     def setUp(self) -> None:
         Args().stop_after_type_inferring = True
+        Args().skip_header_generation = True
 
     def test_simple(self):
         self.check('let f1 = fun(n) -> { if (n = 0) then 1 else n * f1(n - 1) }',
