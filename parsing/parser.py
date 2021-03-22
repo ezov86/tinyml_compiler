@@ -128,7 +128,7 @@ def p_polymorph_type_params_or_none(p):
 
 
 def p_polymorph_type_params(p):
-    """ polymorph_type_params : LANGLE polymorph_types_list RANGLE """
+    """ polymorph_type_params : LBRACK polymorph_types_list RBRACK """
     _pass(p, 2)
 
 
@@ -202,7 +202,7 @@ def p_simple_type(p):
 
 
 def p_param_type(p):
-    """ param_type : ID LANGLE types_list RANGLE """
+    """ param_type : ID LBRACK types_list RBRACK """
     p[0] = ParameterizedType(Position.from_parser_ctx(p), p[1], p[3])
 
 
