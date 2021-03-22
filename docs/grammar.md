@@ -120,8 +120,8 @@ bin_op = expr ':=' expr
        | expr '&' expr
        | expr '~|' expr
        | expr '~&' expr
-       | expr '>>' expr
-       | expr '<<' expr
+       | expr '~>' expr
+       | expr '~<' expr
        
 un_op = '!' expr
       | '-' expr
