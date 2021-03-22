@@ -91,8 +91,10 @@ def is_fun_t(t: Type) -> bool:
 
 
 def fun_type(args: List[Type], ret: Optional[Type] = None) -> ParameterizedType:
+    params = [*args]
+
     if ret is not None:
-        args += [ret]
+        params.append(ret)
 
     return ParameterizedType('fun', args)
 
