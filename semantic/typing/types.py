@@ -96,7 +96,7 @@ def fun_type(args: List[Type], ret: Optional[Type] = None) -> ParameterizedType:
     if ret is not None:
         params.append(ret)
 
-    return ParameterizedType('fun', args)
+    return ParameterizedType('fun', params)
 
 
 t_unit = SimpleType('unit')
