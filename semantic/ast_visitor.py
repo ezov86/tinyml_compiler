@@ -102,7 +102,6 @@ class SemanticVisitor(Visitor):
     def visit_unary_operator(self, n: ast.UnaryOperator, scope: Scope):
         operand = self.visit(n.operand, scope)
 
-        # TODO: здесь и в visit_binary_operator не учитываются операторы списков. Исправить это.
         e = UnaryOperator(n.operation, operand).at(n.position)
 
         # t(un_op(operation)) = t(a) -> t(e), a - операнд.
@@ -119,6 +118,7 @@ class SemanticVisitor(Visitor):
         left = self.visit(n.left, scope)
         right = self.visit(n.right, scope)
 
+        # TODO: здесь не учитываются операторы списков. Исправить это.
         e = BinaryOperator(n.operation, left, right).at(n.position)
 
         # t(bin_op(operation)) = t(a) -> t(b) -> t(e), a - левый операнд, b - правый.
