@@ -134,7 +134,7 @@ def p_polymorph_type_params(p):
 
 def p_polymorph_types_list(p):
     """ polymorph_types_list    : polymorph_type
-                                | polymorph_type COMMA polymorph_type """
+                                | polymorph_type COMMA polymorph_types_list """
     list_rule(p)
 
 
