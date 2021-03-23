@@ -18,19 +18,26 @@ class TestTypeInferer(unittest.TestCase):
                    {'f1': fun_type([t_int], t_int)})
         self.check('let f2 = fun(a, b, c) -> { a = ""; b = 0; c = b }',
                    {'f2': fun_type([t_string, t_int, t_int], t_bool)})
-        self.check('let f3 = fun(a, b, c) -> { let d = a = b; let e = c -. 0.2; a != c }',
+        self.check('''
+                    let f3 = fun(a, b, c) -> {
+                        let d = a = b;
+                        let e = c -. 0.2;
+                        a != c 
+                    } ''',
                    {'f3': fun_type([t_float, t_float, t_float], t_bool)})
 
     def test_polymorph(self):
         self.check('let f4 = fun(f, x, y) -> { f(x) = y }',
                    {'f4': fun_type([fun_type([t_a], t_b), t_a, t_b], t_bool)})
-        self.check('let f5 = fun(x, y, is_q) -> { '
-                   '    let f = if (is_q) then '
-                   '        fun(x) -> { x * x } '
-                   '    else '
-                   '        fun(x) -> { x }; '
-                   '    f4(f, x, y)'
-                   '}',
+        self.check('''
+                    let f5 = fun(x, y, is_q) -> {
+                        let f = if (is_q) then
+                            fun(x) -> { x * x }
+                        else
+                            fun(x) -> { x };
+                        
+                        f4(f, x, y)
+                    } ''',
                    {'f5': fun_type([t_int, t_int, t_bool], t_bool)})
         self.check('let f6 = fun(f) -> { f4(f, "3", 3) }',
                    {'f6': fun_type([fun_type([t_string], t_int)], t_bool)})
@@ -43,10 +50,11 @@ class TestTypeInferer(unittest.TestCase):
                    {'f14': fun_type([t_bool, t_bool], t_bool)})
 
     def test_param(self):
-        self.check('let f9 = fun(f, v, r) -> {'
-                   '   let r2 = f(new v);'
-                   '   (new r2) = $r'
-                   '}',
+        self.check('''
+                    let f9 = fun(f, v, r) -> {
+                        let r2 = f(new v);
+                        (new r2) = $r
+                    } ''',
                    {'f9': fun_type(
                        [fun_type([t_ref_a], t_b), t_a, ParameterizedType('ref', [ParameterizedType('ref', [t_b])])],
                        t_bool)})
