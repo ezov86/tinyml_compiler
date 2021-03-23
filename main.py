@@ -7,6 +7,7 @@ from ast_to_dict_visitor import AstToDictVisitor
 from errors import Errors
 from header_gen import HeaderGenerator
 from parsing.parser import parser
+from header_reader import HeaderReader
 from semantic.ast_visitor import SemanticVisitor
 from semantic.typing.inferer import GlobalTypeInferer
 from tml_ast import Root
@@ -31,7 +32,7 @@ def parse_args(_=None):
     arg_parser.add_argument('-p', '--stop-after-parsing',
                             help='Остановиться после синтаксического анализа и вывести АСД в виде JSON.',
                             action='store_true')
-    arg_parser.add_argument('-g', '--skip-header-generation', help='Пропустить генерацию заголовочного файла модуля.',
+    arg_parser.add_argument('-g', '--skip-header-saving', help='Пропустить сохранение заголовочного файла модуля.',
                             action='store_true')
 
     args = arg_parser.parse_args()
@@ -81,4 +82,3 @@ def generate_code(module):
 
 if __name__ == '__main__':
     parse_args()
-
