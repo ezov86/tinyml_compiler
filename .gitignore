@@ -2,3 +2,4 @@ venv/
 .idea/
 parsing/parser.out
 parsing/parsetab.py
+*.tmlh
