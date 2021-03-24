@@ -165,11 +165,12 @@ class SemanticVisitor(Visitor):
         return fun
 
     def visit_list_create(self, n: ast.ListCreate, scope: Scope):
+        # TODO: здесь и в visit_get_element_from_list написан какой-то бред. Исправить это.
         n.values.reverse()
         create_list = Var(scope.lets.find_or_fail('list.Empty', n.position)).at(n.position)
 
         for element in n.values:
-            # TODO: тождество t(list_create) = t(l0) -> t(e) = ... = t(l(i-1)) -> t(e), где ln - элемент с индексом
+            # _TODO: тождество t(list_create) = t(l0) -> t(e) = ... = t(l(i-1)) -> t(e), где ln - элемент с индексом
             #  n, i - количество элементов в списке.
             create_list = Apply(Var(scope.lets.find_or_fail('::')).at(n.position),
                                 [self.visit(element), create_list]).at(n.position)
@@ -177,7 +178,7 @@ class SemanticVisitor(Visitor):
         return create_list
 
     def visit_get_element_from_list(self, n: ast.GetElementFromList, scope: Scope):
-        # TODO: тождество t(get_element_from_list) = t(l) -> t(e).
+        # _TODO: тождество t(get_element_from_list) = t(l) -> t(e).
         return GetElementFromList(self.visit(n.list, scope), self.visit(n.index, scope)).at(n.position)
 
     def visit_typedef(self, n: ast.Typedef, scope: Scope):

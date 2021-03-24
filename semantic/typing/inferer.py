@@ -46,6 +46,7 @@ class TypeInferer:
         """
         Возвращает новое ограничения на основе данного (причину см. в infer() и Constraint.__init__()).
         """
+        # TODO: см. комментарий к Constraint.__init__.
         return Constraint(constraint.left_wrapper,
                           constraint.right_wrapper,
                           constraint.expression,
@@ -98,6 +99,10 @@ class LocalTypeInferer(TypeInferer):
         visitor = GlobalToLocalTypeVisitor()
 
         for constraint in self.constraints:
+            # TODO: без not_part_of_global все тесты проходятся успешно. Возможно что-то без этого работать не будет.
+            #   Попробовать найти такой случай, добавить его в тесты и раскомментировать эти строки, иначе убрать из
+            #   Constraint.
+
             # if constraint.not_part_of_global:
             #     continue
 
@@ -131,6 +136,8 @@ class Constraint:
     def __init__(self, left_wrapper: TypeWrapper, right_wrapper: TypeWrapper, expression,
                  do_use_local_inferer=False, local_inferer=None, not_part_of_global=False,
                  is_first_local_constraint=False):
+        # TODO: конструктор имеет слишком большое количество аргументов. Один из вариантов решения: использовать паттерн
+        #  "строитель".
         self.not_part_of_global = not_part_of_global
 
         self.expression = expression
