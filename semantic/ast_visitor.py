@@ -1,7 +1,10 @@
+import json
+from pathlib import Path
 from typing import Optional, Dict
 
 import tml_ast as ast
 from errors import CompilationException
+from header_reader import HeaderReader
 from patterns.visitor import Visitor
 from .builtins import t_if, builtin_types, un_ops_types, bin_ops_types
 from .defs import Let, FakeArg, Typedef, TypeConstructor
@@ -14,7 +17,14 @@ from .typing.types import PolymorphType, SimpleType, ParameterizedType, fun_type
 
 class SemanticVisitor(Visitor):
     def visit_root(self, n: ast.Root) -> GlobalModule:
-        GlobalModule(n.module_name).opened_modules.append(builtin_types)
+        GlobalModule().name = n.module_name
+        GlobalModule().open_module(builtin_types)
+
+        if n.imports is not None:
+            self.visit(n.imports)
+
+        if n.opens is not None:
+            self.visit(n.opens)
 
         for definition in n.definitions:
             try:
@@ -23,6 +33,18 @@ class SemanticVisitor(Visitor):
                 e.handle()
 
         return GlobalModule()
+
+    def visit_import(self, n: ast.Import):
+        for module_path in n.modules:
+            with open(Path(module_path).with_suffix('.tmlh'), 'r') as f:
+                json_text = f.read()
+
+            module = HeaderReader().read_module(json.loads(json_text))
+
+            if n.do_open_namespace:
+                GlobalModule().open_module(module)
+            else:
+                GlobalModule().import_module(module)
 
     def visit_let(self, n: ast.Let, scope: Scope):
         e = Let(n.name).at(n.position)
@@ -39,7 +61,7 @@ class SemanticVisitor(Visitor):
         GlobalTypeInferer().add_constraint(Constraint(
             e.type_wrapper,
             e.value.type_wrapper,
-            e.position
+            e
         ))
 
     def visit_literal(self, n: ast.Literal, scope: Scope) -> Literal:
@@ -60,7 +82,7 @@ class SemanticVisitor(Visitor):
         GlobalTypeInferer().add_constraint(Constraint(
             e.fun.type_wrapper,
             TypeWrapper(fun_type(args_t, e.type)),
-            e.position,
+            e,
             do_use_local_inferer=e.fun.is_const_fun()
         ))
 
@@ -77,7 +99,7 @@ class SemanticVisitor(Visitor):
         GlobalTypeInferer().add_constraint(Constraint(
             TypeWrapper(t_if),
             TypeWrapper(fun_type([condition.type, then_branch.type, else_branch.type], e.type)),
-            e.position,
+            e,
             do_use_local_inferer=True
         ))
 
@@ -92,7 +114,7 @@ class SemanticVisitor(Visitor):
         GlobalTypeInferer().add_constraint(Constraint(
             TypeWrapper(un_ops_types[e.operation]),
             TypeWrapper(fun_type([e.operand.type], e.type)),
-            e.position,
+            e,
             do_use_local_inferer=True
         ))
 
@@ -109,7 +131,7 @@ class SemanticVisitor(Visitor):
         GlobalTypeInferer().add_constraint(Constraint(
             TypeWrapper(bin_ops_types[e.operation]),
             TypeWrapper(fun_type([left.type, right.type], e.type)),
-            e.position,
+            e,
             do_use_local_inferer=True
         ))
 

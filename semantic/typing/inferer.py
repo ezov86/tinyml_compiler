@@ -48,7 +48,7 @@ class TypeInferer:
         """
         return Constraint(constraint.left_wrapper,
                           constraint.right_wrapper,
-                          constraint.position,
+                          constraint.expression,
                           constraint.do_use_local_inferer,
                           constraint.local_inferer,
                           constraint.not_part_of_global,
@@ -66,6 +66,10 @@ class TypeInferer:
 
         # self.type_wrappers.append(constraint.left_wrapper)
         # self.type_wrappers.append(constraint.right_wrapper)
+
+    def dump(self) -> str:
+        ns = PolymorphTypeNameSetter()
+        return '\n'.join([constraint.dump(ns) for constraint in self.constraints])
 
 
 class GlobalTypeInferer(TypeInferer, metaclass=Singleton):
@@ -94,8 +98,8 @@ class LocalTypeInferer(TypeInferer):
         visitor = GlobalToLocalTypeVisitor()
 
         for constraint in self.constraints:
-            if constraint.not_part_of_global:
-                continue
+            # if constraint.not_part_of_global:
+            #     continue
 
             constraint.left = visitor.visit(constraint.left)
 
@@ -104,7 +108,7 @@ class LocalTypeInferer(TypeInferer):
         # локальными, а типы всегда сохранены в локальном выводе.
         return Constraint(constraint.left_wrapper,
                           constraint.right_wrapper,
-                          constraint.position,
+                          constraint.expression,
                           constraint.do_use_local_inferer,
                           constraint.local_inferer,
                           constraint.not_part_of_global,
@@ -124,12 +128,12 @@ class LocalTypeInferer(TypeInferer):
 class Constraint:
     """ Ограничение, тождество типов. """
 
-    def __init__(self, left_wrapper: TypeWrapper, right_wrapper: TypeWrapper, position: Position,
+    def __init__(self, left_wrapper: TypeWrapper, right_wrapper: TypeWrapper, expression,
                  do_use_local_inferer=False, local_inferer=None, not_part_of_global=False,
                  is_first_local_constraint=False):
         self.not_part_of_global = not_part_of_global
 
-        self.position = position
+        self.expression = expression
 
         self.do_use_local_inferer = do_use_local_inferer
         self.local_inferer = local_inferer
@@ -162,7 +166,7 @@ class Constraint:
             # Если оба типа являются параметрическими, то добавить в текущий вывод типов тождества каждых
             # соответствующих типов-параметров.
             for p_left, p_right in zip(self.left.params, self.right.params):
-                constraint = Constraint(TypeWrapper(p_left), TypeWrapper(p_right), self.position,
+                constraint = Constraint(TypeWrapper(p_left), TypeWrapper(p_right), self.expression,
                                         do_use_local_inferer=self.do_use_local_inferer, local_inferer=self.cur_inferer,
                                         not_part_of_global=not self.is_first_local_constraint)
 
@@ -176,7 +180,7 @@ class Constraint:
             name_setter.visit(self.left)
             name_setter.visit(self.right)
 
-            raise TypesNotCompatibleException(self.left, self.right, self.position)
+            raise TypesNotCompatibleException(self.left, self.right, self.expression.position)
 
         if self.do_use_local_inferer and self.is_first_local_constraint:
             # Это первое тождество с локальным выводом типов, значит необходимо провести этот вывод.
@@ -210,6 +214,20 @@ class Constraint:
 
     def get_right(self):
         return self.right_wrapper.type
+
+    def dump(self, ns: PolymorphTypeNameSetter) -> str:
+        ns.visit(self.left)
+        ns.visit(self.right)
+
+        expr = self.expression.__class__.__name__
+
+        if hasattr(self.expression, 'name'):
+            expr += f" '{self.expression.name}'"
+        elif hasattr(self.expression, 'fun') and hasattr(self.expression.fun, 'let'):
+            expr += f" '{self.expression.fun.let.name}'"
+
+        return f'line {self.expression.position} {"*" if self.do_use_local_inferer else ""} {expr}\n\t{self.left} =' \
+            f'{self.right} '
 
     left = property(get_left, set_left)
     right = property(get_right, set_right)

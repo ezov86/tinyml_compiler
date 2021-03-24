@@ -1,5 +1,5 @@
 from copy import copy
-from typing import List, Optional
+from typing import Optional, Dict
 
 from errors import Error, CompilationException
 from patterns.singleton import Singleton
@@ -44,7 +44,7 @@ class DefSearchStrategyForCurrentModule(DefSearchStrategy):
             if definition is not None:
                 return definition
 
-            for module in GlobalModule().opened_modules:
+            for module in GlobalModule().opened_modules.values():
                 defs = module.top_scope.typedefs if self.is_typedefs else module.top_scope.lets
                 definition = defs.find(name)
 
@@ -56,9 +56,10 @@ class DefSearchStrategyForCurrentModule(DefSearchStrategy):
             splitted_name = name.split('.')
             module_name, def_name = '.'.join(splitted_name[:-1]), splitted_name[-1]
 
-            module = module_name not in GlobalModule().included_modules
-            if module is None:
+            if module_name not in GlobalModule().included_modules:
                 return None
+
+            module = GlobalModule().included_modules[module_name]
 
             defs = module.top_scope.typedefs if self.is_typedefs else module.top_scope.lets
             return defs.find(def_name)
@@ -123,5 +124,11 @@ class GlobalModule(Module, metaclass=Singleton):
     def __init__(self, name: Optional[str] = None):
         super().__init__(name)
         self.top_scope = Scope(DefSearchStrategyForCurrentModule())
-        self.included_modules: List[Module] = []
-        self.opened_modules: List[Module] = []
+        self.included_modules: Dict[str, Module] = {}
+        self.opened_modules: Dict[str, Module] = {}
+
+    def import_module(self, module: Module):
+        self.included_modules[module.name] = module
+
+    def open_module(self, module: Module):
+        self.opened_modules[module.name] = module

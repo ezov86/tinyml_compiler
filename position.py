@@ -2,6 +2,9 @@ class Position:
     def __init__(self, line: int):
         self.line = line
 
+    def __str__(self) -> str:
+        return str(self.line)
+
     @staticmethod
     def start():
         return Position(1)

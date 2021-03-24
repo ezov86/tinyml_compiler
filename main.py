@@ -1,13 +1,11 @@
 import argparse
 import json
-from pathlib import Path
 
 from args import Args
 from ast_to_dict_visitor import AstToDictVisitor
 from errors import Errors
 from header_gen import HeaderGenerator
 from parsing.parser import parser
-from header_reader import HeaderReader
 from semantic.ast_visitor import SemanticVisitor
 from semantic.typing.inferer import GlobalTypeInferer
 from tml_ast import Root
@@ -32,6 +30,9 @@ def parse_args(_=None):
     arg_parser.add_argument('-p', '--stop-after-parsing',
                             help='Остановиться после синтаксического анализа и вывести АСД в виде JSON.',
                             action='store_true')
+    arg_parser.add_argument('-i', '--stop-before-type-inferring',
+                            help='Остановиться перед выводом типов и вывести систему уравнений.',
+                            action='store_true')
     arg_parser.add_argument('-g', '--skip-header-saving', help='Пропустить сохранение заголовочного файла модуля.',
                             action='store_true')
 
@@ -50,6 +51,7 @@ def read_source_code(_):
 
 def parse_source_code(text: str):
     ast = parser.parse(text, tracking=True)
+
     if Args().stop_after_parsing and Errors().is_ok():
         print(json.dumps(AstToDictVisitor().visit(ast)))
         exit(0)
@@ -63,6 +65,10 @@ def visit_ast(ast: Root):
 
 
 def infer_types(module):
+    if Args().stop_before_type_inferring:
+        print(GlobalTypeInferer().dump())
+        exit(0)
+
     GlobalTypeInferer().infer()
     return handle_next_stage(module, generate_header)
 
@@ -70,7 +76,7 @@ def infer_types(module):
 def generate_header(module):
     if not Args().skip_header_generation:
         text = json.dumps(HeaderGenerator().visit(module), separators=(',', ':'))
-        with Path(Args().source).with_suffix('').open('w') as file:
+        with open(Args().get_header_path(), 'w') as file:
             file.write(text)
 
     return handle_next_stage(module, generate_code)

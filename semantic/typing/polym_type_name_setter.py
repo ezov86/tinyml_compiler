@@ -20,6 +20,8 @@ class PolymorphTypeNameSetter(Visitor):
         else:
             n.name = f'`t{self.polymorph_types_counter}'
 
+        self.already_visited.append(n)
+
         self.polymorph_types_counter += 1
 
     def visit_parameterized_type(self, n: ParameterizedType):
