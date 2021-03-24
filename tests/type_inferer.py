@@ -112,9 +112,13 @@ class TestTypeInferer(unittest.TestCase):
             let f18 = fun(a, b, c) -> { f15(f16(f17, a, b), c) }
             ''',
             {
+                # `a -> `a -> bool
                 'f15': fun_type([t_a, t_a], t_bool),
+                # (`a -> `b) -> `a -> `b -> bool
                 'f16': fun_type([fun_type([t_a], t_b), t_a, t_b], t_bool),
+                # int -> bool
                 'f17': fun_type([t_int], t_bool),
+                # int -> bool -> bool -> bool
                 'f18': fun_type([t_int, t_bool, t_bool], t_bool)
             })
         pass
