@@ -1,8 +1,7 @@
 from typing import List, Optional
 
-from .node import Node
 from position import Position
-from .expressions import Expression
+from .node import Node
 from .types import Type, PolymorphType
 
 
@@ -13,7 +12,7 @@ class Definition(Node):
 
 
 class Let(Definition):
-    def __init__(self, position: Position, name: str, expression: Expression, type_hint: Optional[Type]):
+    def __init__(self, position: Position, name: str, expression, type_hint: Optional[Type]):
         super().__init__(position, name)
         self.expression = expression
         self.type_hint = type_hint

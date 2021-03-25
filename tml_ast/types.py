@@ -15,7 +15,7 @@ class SimpleType(Type):
 
 
 class ParameterizedType(Type):
-    def __init__(self, position: Position, name: str, params: List[Type]):
+    def __init__(self, position: Position, name: str, params: list):
         super().__init__(position, name)
         self.params = params
 
