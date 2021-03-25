@@ -360,7 +360,10 @@ def p_match_branches(p):
 def p_match_branch(p):
     """ match_branch : expr ARROW match_branch_body """
     pos = Position.from_parser_ctx(p)
-    p[0] = MatchBranch(pos, p[1], Group(pos, [p[3]]))
+    if not isinstance(p[3], list):
+        p[3] = [p[3]]
+
+    p[0] = MatchBranch(pos, p[1], Group(pos, p[3]))
 
 
 def p_match_branch_body(p):
