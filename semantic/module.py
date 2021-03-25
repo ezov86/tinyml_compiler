@@ -114,6 +114,12 @@ class Scope:
         self.typedefs = Definitions(copy(search_strategy), is_typedefs=True)
 
 
+class ScopeWithParent(Scope):
+    def __init__(self, parent: Scope):
+        super().__init__(DefSearchStrategyWithParent(parent))
+        self.parent = parent
+
+
 class Module:
     def __init__(self, name: str):
         self.name = name

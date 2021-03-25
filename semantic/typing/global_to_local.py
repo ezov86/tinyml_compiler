@@ -29,7 +29,7 @@ class GlobalToLocalTypeVisitor(Visitor):
         return n
 
     def visit_polymorph_type(self, n: PolymorphType):
-        return copy(n)
+        return PolymorphType()
 
     def visit_parameterized_type(self, n: ParameterizedType):
         return ParameterizedType(n.name, [self.visit(p) for p in n.params])

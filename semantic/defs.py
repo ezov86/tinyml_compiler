@@ -28,7 +28,11 @@ class TypeConstructor(TypedNode):
     def is_const_fun(self) -> bool:
         return True
 
+    def get_index(self):
+        return self.typedef.constructors.index(self)
+
     type_wrapper = property(get_type_wrapper)
+    index = property(get_index)
 
 
 class Typedef(TypedNode):

@@ -121,7 +121,31 @@ class TestTypeInferer(unittest.TestCase):
                 # int -> bool -> bool -> bool
                 'f18': fun_type([t_int, t_bool, t_bool], t_bool)
             })
-        pass
+
+    def test_global_to_local(self):
+        self.assert_types(
+            '''
+            let f19 = fun(f, x, y, z) -> { f(x, y) = z }
+            let f20 = fun(a, b) -> { a = b }
+            let f21 = f20
+            let f22 = fun(a, b) -> {
+                f19(f20, a, "", True);
+                f19(f20, b, 4, False);
+                f19(f21, a, "", True);
+                f19(f21, b, 4, True)
+            }
+            ''',
+            {
+                # (`a -> `b -> `c) -> `a -> `b -> `c -> bool
+                'f19': fun_type([fun_type([t_a, t_b], t_c), t_a, t_b, t_c], t_bool),
+                # `a -> `a -> bool
+                'f20': fun_type([t_a, t_a], t_bool),
+                # `a -> `a -> bool
+                'f21': fun_type([t_a, t_a], t_bool),
+                # string -> int -> bool
+                'f22': fun_type([t_string, t_int], t_bool)
+            }
+        )
 
     def assert_types(self, code: str, let_names_and_expected_types: dict):
         parse_source_code(f'module test {code}')

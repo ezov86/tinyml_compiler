@@ -1,7 +1,7 @@
-from typing import List
+from typing import List, Optional
 
 from .defs import Arg
-from .module import Scope, Definitions, DefSearchStrategyWithParent
+from .module import ScopeWithParent
 from .node import TypedNode
 from .typing.inferer import TypeWrapper
 from .typing.types import PolymorphType, fun_type
@@ -83,16 +83,17 @@ class MatchBranch(TypedNode):
 
 
 class Match(BaseExpression):
-    def __init__(self, expression, branches: List[MatchBranch]):
+    def __init__(self, expression):
         super().__init__()
         self.expression = expression
-        self.branches = branches
+        self.branches = []
+        self.default_branch: Optional[MatchBranch] = None
 
 
-class LambdaFun(BaseExpression, Scope):
+class LambdaFun(BaseExpression, ScopeWithParent):
     def __init__(self, parent_scope):
         BaseExpression.__init__(self)
-        Scope.__init__(self, DefSearchStrategyWithParent(parent_scope))
+        ScopeWithParent.__init__(self, parent_scope)
         self.args = []
         self.body = Group([])
 
@@ -104,7 +105,7 @@ class LambdaFun(BaseExpression, Scope):
         self.args.append(arg)
 
     def get_type_wrapper(self):
-        return TypeWrapper(fun_type([arg.type for arg in self.args], self.body.type))
+        return TypeWrapper(fun_type([arg.type for arg in self.args], self.body.type), True)
 
     type_wrapper = property(get_type_wrapper)
 

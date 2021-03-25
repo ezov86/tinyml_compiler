@@ -1,3 +1,4 @@
+from itertools import zip_longest
 from typing import List
 
 from errors import CompilationException, Error
@@ -14,8 +15,9 @@ class TypesNotCompatibleException(CompilationException):
 
 
 class TypeWrapper:
-    def __init__(self, t):
+    def __init__(self, t, do_replace_globals_with_locals=False):
         self.type = t
+        self.do_replace_globals_with_locals = do_replace_globals_with_locals
 
         GlobalTypeInferer().type_wrappers.append(self)
 
@@ -53,7 +55,9 @@ class TypeInferer:
                           constraint.do_use_local_inferer,
                           constraint.local_inferer,
                           constraint.not_part_of_global,
-                          is_first_local_constraint=True)
+                          is_first_local_constraint=True,
+                          args=constraint.args,
+                          replace_right_globals=constraint.replace_right_globals)
 
     def replace_type(self, original, new):
         if original == new:
@@ -108,6 +112,9 @@ class LocalTypeInferer(TypeInferer):
 
             constraint.left = visitor.visit(constraint.left)
 
+            if constraint.replace_right_globals:
+                constraint.right = visitor.visit(constraint.right)
+
     def recreate_constraint(self, constraint):
         # Отличие от TypeInferer.recreate_constraint() в том, что здесь ограничение всегда не являются первыми
         # локальными, а типы всегда сохранены в локальном выводе.
@@ -117,7 +124,9 @@ class LocalTypeInferer(TypeInferer):
                           constraint.do_use_local_inferer,
                           constraint.local_inferer,
                           constraint.not_part_of_global,
-                          is_first_local_constraint=False)
+                          is_first_local_constraint=False,
+                          args=constraint.args,
+                          replace_right_globals=constraint.replace_right_globals)
 
     def infer(self):
         self.global_to_locals()
@@ -135,7 +144,7 @@ class Constraint:
 
     def __init__(self, left_wrapper: TypeWrapper, right_wrapper: TypeWrapper, expression,
                  do_use_local_inferer=False, local_inferer=None, not_part_of_global=False,
-                 is_first_local_constraint=False):
+                 is_first_local_constraint=False, args=[], replace_right_globals=False):
         # TODO: конструктор имеет слишком большое количество аргументов. Один из вариантов решения: использовать паттерн
         #  "строитель".
         self.not_part_of_global = not_part_of_global
@@ -149,6 +158,8 @@ class Constraint:
         self.right_wrapper = right_wrapper
 
         self.is_first_local_constraint = is_first_local_constraint
+        self.args = args
+        self.replace_right_globals = replace_right_globals
 
         # Определение текущего вывода типов.
         if self.do_use_local_inferer:
@@ -172,10 +183,16 @@ class Constraint:
         if is_param_t(self.left) and is_param_t(self.right):
             # Если оба типа являются параметрическими, то добавить в текущий вывод типов тождества каждых
             # соответствующих типов-параметров.
-            for p_left, p_right in zip(self.left.params, self.right.params):
+            for p_left, p_right, arg in zip_longest(self.left.params, self.right.params, self.args):
+                if arg is not None:
+                    replace_right_globals = arg.is_const_fun()
+                else:
+                    replace_right_globals = self.replace_right_globals
+
                 constraint = Constraint(TypeWrapper(p_left), TypeWrapper(p_right), self.expression,
                                         do_use_local_inferer=self.do_use_local_inferer, local_inferer=self.cur_inferer,
-                                        not_part_of_global=not self.is_first_local_constraint)
+                                        not_part_of_global=not self.is_first_local_constraint,
+                                        replace_right_globals=replace_right_globals)
 
                 self.cur_inferer.constraints.append(constraint)
 

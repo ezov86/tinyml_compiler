@@ -1,18 +1,24 @@
 import json
 from pathlib import Path
-from typing import Optional, Dict
 
 import tml_ast as ast
-from errors import CompilationException
+from errors import CompilationException, Error
 from header_reader import HeaderReader
 from patterns.visitor import Visitor
+from position import Position
 from .builtins import t_if, builtin_types, un_ops_types, bin_ops_types
 from .defs import Let, FakeArg, Typedef, TypeConstructor
 from .expressions import *
-from .module import GlobalModule, Scope, NotFoundException, RedefinitionException
+from .match_builder import MatchBuilder
+from .module import GlobalModule, Scope, RedefinitionException
 from .typing.ast_type_visitor import AstTypeVisitor
 from .typing.inferer import GlobalTypeInferer, Constraint
-from .typing.types import PolymorphType, SimpleType, ParameterizedType, fun_type
+from .typing.types import PolymorphType, fun_type, t_int
+
+
+class InvalidUsageException(CompilationException):
+    def __init__(self, name: str, position: Position):
+        super().__init__(Error(f"неправильно количество аргументов у '{name}'", position))
 
 
 class SemanticVisitor(Visitor):
@@ -83,7 +89,8 @@ class SemanticVisitor(Visitor):
             e.fun.type_wrapper,
             TypeWrapper(fun_type(args_t, e.type)),
             e,
-            do_use_local_inferer=e.fun.is_const_fun()
+            do_use_local_inferer=e.fun.is_const_fun(),
+            args=args
         ))
 
         return e
@@ -210,3 +217,65 @@ class SemanticVisitor(Visitor):
         scope.lets.add(type_constructor, n.position)
 
         return type_constructor
+
+    def visit_match(self, n: ast.Match, scope: Scope):
+        builder = MatchBuilder(n, scope, self)
+
+        builder.process_patterns()
+        builder.visit_branches()
+        builder.check_exhaustivity()
+
+        return builder.result().at(n.position)
+
+    def visit_match_branch(self, n: ast.MatchBranch, scope: Scope, builder: MatchBuilder, is_default_branch=False):
+        if is_default_branch:
+            body_scope = ScopeWithParent(scope)
+            pattern = Arg(n.pattern.name)
+            body_scope.lets.add(pattern, n.pattern.position)
+
+            body = self.visit(n.body, body_scope)
+        elif builder.patterns_are_type_variants:
+            if isinstance(n.pattern, ast.Var):
+                constructor = scope.lets.find(n.pattern.name)
+                body = self.visit(n.body, scope)
+            else:
+                constructor = scope.lets.find_or_fail(n.pattern.fun.name, n.pattern.position)
+
+                if len(constructor.field_types) != len(n.pattern.args):
+                    raise InvalidUsageException(constructor.name, n.pattern.position)
+
+                body_scope = ScopeWithParent(scope)
+                for field in n.pattern.args:
+                    body_scope.lets.add(Arg(field.name), n.pattern.position)
+
+                body = self.visit(n.body, body_scope)
+
+            pattern = Literal(constructor.index).with_type(t_int).at(n.position)
+
+            # t(c) = t(m_e)
+            GlobalTypeInferer().add_constraint(Constraint(
+                constructor.type_wrapper,
+                builder.match.expression,
+                pattern,
+                do_use_local_inferer=True
+            ))
+        else:
+            pattern = self.visit(n.pattern, scope)
+
+            # t(p) = t(m_e)
+            GlobalTypeInferer().add_constraint(Constraint(
+                pattern.type_wrapper,
+                builder.match.expression,
+                pattern,
+            ))
+
+            body = self.visit(n.body, scope)
+
+        # t(m) = t(b_e)
+        GlobalTypeInferer().add_constraint(Constraint(
+            body.type_wrapper,
+            builder.match.type_wrapper,
+            body
+        ))
+
+        return MatchBranch(pattern, body).at(n.position)
